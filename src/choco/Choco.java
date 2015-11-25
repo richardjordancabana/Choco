@@ -23,7 +23,7 @@ public class Choco {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        
+        //prueba123
         /*
         Solver solver = new Solver("my first problem");
         4 // 2. Create variables through the variable factory
