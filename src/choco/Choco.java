@@ -56,7 +56,7 @@ public class Choco {
         
         
         IntVar Beneficio = VariableFactory.bounded("objective", 0, 999999, solver);
-        solver.post(IntConstraintFactory.scalar(new IntVar[]{x,y}, new int[]{185,207}, Beneficio));
+        solver.post(IntConstraintFactory.scalar(new IntVar[]{x,y}, new int[]{185,400}, Beneficio));
         solver.findOptimalSolution(ResolutionPolicy.MAXIMIZE, Beneficio);
             
         if(solver.findSolution()){
