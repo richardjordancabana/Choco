@@ -66,9 +66,12 @@ public class Choco {
         int suma=0;
         for(int i=0; i<p+1;i++)
            suma=suma+v[i]*i;
-        
+           
+        IntVar[] vchoco;   
+        IntVar k;
         int l=1; //nivel
         IntVar[] a;
+        IntVar[] cuenta;
         while (suma != p){
             
             Solver solver = new Solver("Minimaze K");
@@ -94,53 +97,48 @@ public class Choco {
              //C2
              for (int i = 0; i < R; i++) {
                 for (int j = 0; j < Q; j++) {
-                    columna = new IntVar[R];
+                    columna = new IntVar[Q];
                     columna[j]=a[i+j*R];
                 }
-                IntVar sum=VariableFactory.enumerated(Cr[i+1]+"", Cr[i+1], Cr[i+1], solver);
-                solver.post(IntConstraintFactory.sum(columna,"<=",sum));
+                IntVar sum1=VariableFactory.enumerated(Cr[i+1]+"", Cr[i+1], Cr[i+1], solver);
+                solver.post(IntConstraintFactory.sum(columna,"<=",sum1));
              }
              //C3
-       
-          
+            if(l!=1){
+                vchoco= VariableFactory.enumeratedArray("vchoco" + i + "_" + j,p+1, 0, max, solver);
+                for (int i=0;i<=l;i++)
+                 {
+                     solver.post(IntConstraintFactory.arithm(vchoco[i], "=", v[i])); // se supone q los ceros no se consideran
+                 }
+                
+            }
+            
+            cuenta = new IntVar[Q * R];//contar a 
+                for(int i=0;i<Q*R;i++)
+                {
+                    LogicalConstraintFactory.ifThenElse(IntConstraintFactory.arithm(a[i], "=", l), //eq?¿
+								IntConstraintFactory.arithm(cuenta[i], "=", 1),
+								IntConstraintFactory.arithm(cuenta[i], "=", 0)
+                );
+                    
+                    
+                }
+                
+                //k=VariableFactory.enumerated("k", 0, Q*R, solver);
+                k=VariableFactory.enumerated("k", 0, max, solver);
+             //linkear k a cuantos ha contado
+             IntVar uno =VariableFactory.enumerated("uno",1,1,solver);
+             solver.post(IntConstraintFactory.count(uno,cuenta,k)
+             //DUDA solver.post(IntConstraintFactory.arithm(k, "=", ));
+             
+             solver.post(IntConstraintFactory.arithm(vchoco[l], "=", k));
+             //minimizar k
+             solver.findOptimalSolution(ResolutionPolicy.MINIMAZE, k);
+             
+             //obtener vchoco y pasarlo a v
             
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-//        
-//        
-//        Solver solver = new Solver("my first problem");
-//        
-//        IntVar x = VariableFactory.bounded("X", 0, 5, solver);
-//        IntVar y = VariableFactory.bounded("Y", 0, 5, solver);
-//        
-//        IntVar xc = VariableFactory.scale(x,20);
-//        IntVar yc = VariableFactory.scale(y,11);
-//        IntVar xh = VariableFactory.scale(x,14);
-//        IntVar yh = VariableFactory.scale(y,21);
-//        IntVar xt = VariableFactory.scale(x,30);
-//        IntVar yt = VariableFactory.scale(y,40);
-//        
-//        solver.post(IntConstraintFactory.arithm(xc, "+", yc, "<=", 130));
-//        solver.post(IntConstraintFactory.arithm(xh, "+", yh, "<=", 400));
-//        solver.post(IntConstraintFactory.arithm(xt, "+", yt, "<=", 150));
-//        
-//        
-//        IntVar Beneficio = VariableFactory.bounded("objective", 0, 999999, solver);
-//        solver.post(IntConstraintFactory.scalar(new IntVar[]{x,y}, new int[]{185,400}, Beneficio));
-//        solver.findOptimalSolution(ResolutionPolicy.MAXIMIZE, Beneficio);
-//            
+
 //        if(solver.findSolution()){
 //            do{
 //            Chatterbox.printStatistics(solver);
