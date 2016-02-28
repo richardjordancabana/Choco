@@ -8,6 +8,7 @@ package choco;
 import org.chocosolver.solver.ResolutionPolicy;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.IntConstraintFactory;
+import org.chocosolver.solver.constraints.LogicalConstraintFactory;
 import org.chocosolver.solver.trace.Chatterbox;
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.solver.variables.VariableFactory;
@@ -52,22 +53,23 @@ public class Choco {
                 max2=Cr[i];//recuso maximo
         
         int max=0;
-        if (max1>max2)
+        if (max1<max2)
                 max=max1;
         else max=max2; //maximo de los maximos
+        //COTA MINIMO DE LOS MAXIMOS
        
         int p=0;
         for(int i=0; i<Q+1;i++)
            p=p+Qf[i]; //poblacion total
      
-        int v[]= new int[p+1];//vector de anonimicidad
+        int v[]= new int[p+1];//vector de anonimicidad TAMAÑO MIN DE LOS MAX
         for(int i=0; i<p+1;i++)
            v[i]=0;
         int suma=0;
         for(int i=0; i<p+1;i++)
            suma=suma+v[i]*i;
            
-        IntVar[] vchoco;   
+        IntVar[] vchoco=null;   
         IntVar k;
         int l=1; //nivel
         IntVar[] a;
@@ -87,65 +89,83 @@ public class Choco {
             IntVar[] columna = null;
             //C1
              for (int i = 0; i < Q; i++) {
+                 fila = new IntVar[R];
                 for (int j = 0; j < R; j++) {
-                    fila = new IntVar[R];
+                    
                     fila[j]=a[i*R+j];
                 }
-                IntVar sum=VariableFactory.enumerated(Qf[i+1]+"", Qf[i+1], Qf[i+1], solver);
+                
+                IntVar sum=VariableFactory.enumerated(Qf[i+1]+"", Qf[i+1], Qf[i+1], solver);//TRUCO?
                 solver.post(IntConstraintFactory.sum(fila,sum));
              }
              //C2
              for (int i = 0; i < R; i++) {
+                 columna = new IntVar[Q];
                 for (int j = 0; j < Q; j++) {
-                    columna = new IntVar[Q];
+                    
                     columna[j]=a[i+j*R];
                 }
                 IntVar sum1=VariableFactory.enumerated(Cr[i+1]+"", Cr[i+1], Cr[i+1], solver);
                 solver.post(IntConstraintFactory.sum(columna,"<=",sum1));
              }
              //C3
-            if(l!=1){
-                vchoco= VariableFactory.enumeratedArray("vchoco" + i + "_" + j,p+1, 0, max, solver);
-                for (int i=0;i<=l;i++)
+          /*  if(l!=1){
+                vchoco= VariableFactory.enumeratedArray("vchoco" ,p+1, 0, max, solver);
+                for (int i=1;i<=l;i++)
                  {
                      solver.post(IntConstraintFactory.arithm(vchoco[i], "=", v[i])); // se supone q los ceros no se consideran
                  }
                 
             }
-            
+            //BUCLE FOR N=1 <= L-1
             cuenta = new IntVar[Q * R];//contar a 
                 for(int i=0;i<Q*R;i++)
                 {
                     LogicalConstraintFactory.ifThenElse(IntConstraintFactory.arithm(a[i], "=", l), //eq?¿
 								IntConstraintFactory.arithm(cuenta[i], "=", 1),
 								IntConstraintFactory.arithm(cuenta[i], "=", 0)
-                );
-                    
-                    
+                );            
                 }
                 
                 //k=VariableFactory.enumerated("k", 0, Q*R, solver);
                 k=VariableFactory.enumerated("k", 0, max, solver);
              //linkear k a cuantos ha contado
+               
              IntVar uno =VariableFactory.enumerated("uno",1,1,solver);
-             solver.post(IntConstraintFactory.count(uno,cuenta,k)
-             //DUDA solver.post(IntConstraintFactory.arithm(k, "=", ));
+             solver.post(IntConstraintFactory.count(uno,cuenta,k));
+             */
+             //C3
+             if(l!=1){
+                vchoco= VariableFactory.enumeratedArray("vchoco" ,p+1, 0, max, solver);
+                for (int i=1;i<=l;i++)
+                 {
+                     solver.post(IntConstraintFactory.arithm(vchoco[i], "=", v[i])); // se supone q los ceros no se consideran
+                 }
+                
+            }
+  
+             for(int i =1;i<l;i++)
+                solver.post(IntConstraintFactory.count(i,a,vchoco[i]));
+
              
-             solver.post(IntConstraintFactory.arithm(vchoco[l], "=", k));
+             //C4
+             k=VariableFactory.enumerated("k", 0, max, solver);
+             solver.post(IntConstraintFactory.count(l,a,k));
+            //  solver.post(IntConstraintFactory.arithm(vchoco[l], "=", k));
              //minimizar k
-             solver.findOptimalSolution(ResolutionPolicy.MINIMAZE, k);
-             
-             //obtener vchoco y pasarlo a v
-            
+             solver.findOptimalSolution(ResolutionPolicy.MINIMIZE, k);
+             if(solver.findSolution()){
+            do{
+            Chatterbox.printStatistics(solver);
+            Chatterbox.printSolutions(solver);
+            //OBTENER K Y AÑADIRLO A V.
+            }while(solver.nextSolution());
+            }
+             break;
         }
 
-//        if(solver.findSolution()){
-//            do{
-//            Chatterbox.printStatistics(solver);
-//            Chatterbox.printSolutions(solver);
-//            }while(solver.nextSolution());
-//}
-//        
+        
+        
     }
     
 }
