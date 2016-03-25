@@ -11,6 +11,7 @@ import org.chocosolver.solver.constraints.IntConstraintFactory;
 import org.chocosolver.solver.constraints.LogicalConstraintFactory;
 import org.chocosolver.solver.trace.Chatterbox;
 import org.chocosolver.solver.variables.IntVar;
+import org.chocosolver.solver.variables.Variable;
 import org.chocosolver.solver.variables.VariableFactory;
 
 /**
@@ -23,19 +24,6 @@ public class Choco {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-/*
-        Solver solver = new Solver("my first problem");
-        4 // 2. Create variables through the variable factory
-        5 IntVar x = VariableFactory.bounded("X", 0, 5, solver);
-        6 IntVar y = VariableFactory.bounded("Y", 0, 5, solver);
-        7 // 3. Create and post constraints by using constraint factories
-        8 solver.post(IntConstraintFactory.arithm(x, "+", y, "<", 5));
-        9 // 4. Define the search strategy
-        10 solver.set(IntStrategyFactory.lexico_LB(x, y));
-        11 // 5. Launch the resolution process
-        12 solver.findSolution();
-        13 //6. Print search statistics
-        */
         
         //datos iniciales.
         int Q=4;
@@ -56,17 +44,17 @@ public class Choco {
         if (max1<max2)
                 max=max1;
         else max=max2; //maximo de los maximos
-        //COTA MINIMO DE LOS MAXIMOS
+        //COTA MINIMA DE LOS MAXIMOS
        
         int p=0;
         for(int i=0; i<Q+1;i++)
            p=p+Qf[i]; //poblacion total
      
-        int v[]= new int[p+1];//vector de anonimicidad TAMAÑO MIN DE LOS MAX
-        for(int i=0; i<p+1;i++)
+        int v[]= new int[max+1];//vector de anonimicidad TAMAÑO MIN DE LOS MAX
+        for(int i=0; i<max+1;i++)
            v[i]=0;
         int suma=0;
-        for(int i=0; i<p+1;i++)
+        for(int i=0; i<max+1;i++)
            suma=suma+v[i]*i;
            
         IntVar[] vchoco=null;   
@@ -74,6 +62,7 @@ public class Choco {
         int l=1; //nivel
         IntVar[] a;
         IntVar[] cuenta;
+        int kvalor=0;
         while (suma != p){
             
             Solver solver = new Solver("Minimaze K");
@@ -136,7 +125,7 @@ public class Choco {
              */
              //C3
              if(l!=1){
-                vchoco= VariableFactory.enumeratedArray("vchoco" ,p+1, 0, max, solver);
+                vchoco= VariableFactory.enumeratedArray("vchoco" ,max+1, 0, max, solver);
                 for (int i=1;i<=l;i++)
                  {
                      solver.post(IntConstraintFactory.arithm(vchoco[i], "=", v[i])); // se supone q los ceros no se consideran
@@ -158,11 +147,17 @@ public class Choco {
             do{
             Chatterbox.printStatistics(solver);
             Chatterbox.printSolutions(solver);
+            kvalor =k.getValue();
+            
+            
             //OBTENER K Y AÑADIRLO A V.
             }while(solver.nextSolution());
             }
-             break;
+             v[l]=kvalor;
+             l++;
+            // break;
         }
+        
 
         
         
