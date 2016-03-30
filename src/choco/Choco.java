@@ -155,6 +155,9 @@ public class Choco {
             }
              v[l]=kvalor;
              l++;
+             suma=0;
+             for(int i=0; i<max+1;i++)
+                   suma=suma+v[i]*i;
             // break;
         }
         
