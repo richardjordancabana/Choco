@@ -25,6 +25,7 @@ public class Choco {
      */
     public static void main(String[] args) {
         
+        int[][] total=null;
         //datos iniciales.
         int Q=4;
         int Qf[]={0,4,4,5,2};
@@ -143,11 +144,22 @@ public class Choco {
             //  solver.post(IntConstraintFactory.arithm(vchoco[l], "=", k));
              //minimizar k
              solver.findOptimalSolution(ResolutionPolicy.MINIMIZE, k);
+             
+              
+               
              if(solver.findSolution()){
             do{
             Chatterbox.printStatistics(solver);
             Chatterbox.printSolutions(solver);
             kvalor =k.getValue();
+           //reconstruir matriz final , solo nos interesa en la ultima vuelta
+            total=new int[Q][R];
+               
+               for (int i = 0; i < Q; i++) {
+                for (int j = 0; j < R; j++) {
+                   total[i][j] = a[i * R + j].getValue();
+                     }
+                 }
             
             
             //OBTENER K Y AÑADIRLO A V.
@@ -158,6 +170,12 @@ public class Choco {
              suma=0;
              for(int i=0; i<max+1;i++)
                    suma=suma+v[i]*i;
+             
+             //reconstruir
+             
+                
+                 
+             
             // break;
         }
         
